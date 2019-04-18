@@ -22,10 +22,10 @@ $ npm run deploy
 | Verb | Path  | Params    |
 | ---- | ----- | --------- |
 | GET  | /     |           |
-| GET  | /user |           |
-| POST | /user | userModel |
+| GET  | /jobs |           |
+| POST | /jobs | userModel |
 
-You can find postman collection in the repo
+<!-- You can find postman collection in the repo
 
 ## Model
 
@@ -35,4 +35,4 @@ You can find postman collection in the repo
 | --------- | ------ | ------------------ | -------------- |
 | firstName | String | :heavy_check_mark: | Min:5, Max: 30 |
 | lastName  | String | :heavy_check_mark: | Min:5, Max: 30 |
-| email     | String | :heavy_check_mark: | Email format   |
+| email     | String | :heavy_check_mark: | Email format   | -->
