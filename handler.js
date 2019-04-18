@@ -1,6 +1,7 @@
-const Joi = require('joi');
+const Joi = require("joi");
 
-const { db } = require('./helpers/db');
+const { db } = require("./helpers/db");
+var ObjectID = require('mongodb').ObjectID;
 
 // schema for validating user object when adding new user
 const userSchema = Joi.object().keys({
@@ -14,35 +15,35 @@ const userSchema = Joi.object().keys({
     .required(),
   email: Joi.string()
     .email()
-    .required(),
+    .required()
 });
 
 // schema for validating user object when adding new user
 const jobSchema = Joi.object().keys({
-  title: Joi.string()
-    .required(),
+  title: Joi.string().required(),
   companies: Joi.array(),
   cities: Joi.array(),
   technologies: Joi.array(),
-  fromDate: Joi.date()
-    .required(),
-  toDate: Joi.date()
-    .required(),
-  expectedSalary: Joi.number()
-    .required(),
+  fromDate: Joi.date().required(),
+  toDate: Joi.date().required(),
+  expectedSalary: Joi.number().required(),
   index: Joi.number(),
   _id: Joi.string()
 });
 
 // dummy route to check status of service
 async function ping() {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       return resolve({
         statusCode: 200,
         body: JSON.stringify({
-          message: 'Service is up and running.',
+          message: "Service is up and running."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
@@ -52,17 +53,17 @@ async function ping() {
 
 // get all users
 async function getUsers() {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       // get connection to mongodb
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // get all users
       const users = await dbo
-        .collection('users')
+        .collection("users")
         .find()
         .toArray();
 
@@ -74,35 +75,53 @@ async function getUsers() {
         statusCode: 200,
         body: JSON.stringify({
           users,
-          success: true,
+          success: true
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
-      console.log(e);
+      console.log(JSON.stringify(e));
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: e
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
 }
 
-
-// get all companies
-async function getCompanies() {
-  return new Promise(async (resolve) => {
+// get global
+async function getGlobal() {
+  return new Promise(async resolve => {
     try {
       // get connection to mongodb
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // get all companies
       const companies = await dbo
-        .collection('companies')
+        .collection("companies")
+        .find()
+        .toArray();
+
+      const cities = await dbo
+        .collection("cities")
+        .find()
+        .toArray();
+
+      // get all technologies
+      const technologies = await dbo
+        .collection("technologies")
         .find()
         .toArray();
 
@@ -114,105 +133,34 @@ async function getCompanies() {
         statusCode: 200,
         body: JSON.stringify({
           companies,
-          success: true,
-        }),
-      });
-    } catch (e) {
-      console.log(e);
-      return resolve({
-        statusCode: 500,
-        body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
-        }),
-      });
-    }
-  });
-}
-
-
-// get all cities
-async function getCities() {
-  return new Promise(async (resolve) => {
-    try {
-      // get connection to mongodb
-      const dbConn = await db();
-
-      // get database instance
-      const dbo = dbConn.db('dream-job');
-
-      // get all cities
-      const cities = await dbo
-        .collection('cities')
-        .find()
-        .toArray();
-
-      // close db connection
-      await dbConn.close();
-
-      // return cities
-      return resolve({
-        statusCode: 200,
-        body: JSON.stringify({
           cities,
-          success: true,
-        }),
-      });
-    } catch (e) {
-      console.log(e);
-      return resolve({
-        statusCode: 500,
-        body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
-        }),
-      });
-    }
-  });
-}
-
-
-// get all technologies
-async function getTechnologies() {
-  return new Promise(async (resolve) => {
-    try {
-      // get connection to mongodb
-      const dbConn = await db();
-
-      // get database instance
-      const dbo = dbConn.db('dream-job');
-
-      // get all technologies
-      const technologies = await dbo
-        .collection('technologies')
-        .find()
-        .toArray();
-
-      // close db connection
-      await dbConn.close();
-
-      // return technologies
-      return resolve({
-        statusCode: 200,
-        body: JSON.stringify({
           technologies,
-          success: true,
+          success: true
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
 }
 
-
-// add companies
-async function addCompanies(event) {
-  return new Promise(async (resolve) => {
+// update Global
+async function updateGlobal(event) {
+  return new Promise(async resolve => {
     try {
       // parse body
       let body;
@@ -230,8 +178,12 @@ async function addCompanies(event) {
         return resolve({
           statusCode: 400,
           body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
+            message: result.error.details.map(a => a.message)
           }),
+          headers: {
+            'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+            'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+          }
         });
       }
 
@@ -239,141 +191,51 @@ async function addCompanies(event) {
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
-      // insert new technologies
-      await dbo.collection('companies').insert(body);
+      console.log(body);
+
+      // insert new resources
+      if(body.companies.length) {
+        await dbo.collection("companies").insert(body.companies);
+      }
+
+      if(body.cities.length) {
+        await dbo.collection("cities").insert(body.cities);
+      }
+
+      if(body.technologies.length) {
+        await dbo.collection("technologies").insert(body.technologies);
+      }
+
 
       let companies = [];
-      await dbo.collection("companies").find({}).toArray(function(err, result) {
-        if (err) throw err;
-        companies = result
-      });
-
-      // close connection
-      await dbConn.close();
-
-      // return response
-      return resolve({
-        statusCode: 200,
-        body: JSON.stringify({
-          companies
-        }),
-      });
-    } catch (e) {
-      console.log(e);
-      return resolve({
-        statusCode: 500,
-        body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
-        }),
-      });
-    }
-  });
-}
-
-
-// add cities
-async function addCities(event) {
-  return new Promise(async (resolve) => {
-    try {
-      // parse body
-      let body;
-      try {
-        body = JSON.parse(event.body);
-      } catch (e) {
-        body = {};
-      }
-
-      // validate body
-      const result = body;
-
-      // return errors if any error
-      if (result.error) {
-        return resolve({
-          statusCode: 400,
-          body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
-          }),
-        });
-      }
-
-      // get connection to mongodb
-      const dbConn = await db();
-
-      // get database instance
-      const dbo = dbConn.db('dream-job');
-
-      // insert new user
-      await dbo.collection('cities').insert(body);
-
       let cities = [];
-      await dbo.collection("cities").find({}).toArray(function(err, result) {
-        if (err) throw err;
-        cities = result
-      });
-
-      // close connection
-      await dbConn.close();
-
-      // return response
-      return resolve({
-        statusCode: 200,
-        body: JSON.stringify({
-          cities
-        }),
-      });
-    } catch (e) {
-      console.log(e);
-      return resolve({
-        statusCode: 500,
-        body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
-        }),
-      });
-    }
-  });
-}
-
-// add technologies
-async function addTechnologies(event) {
-  return new Promise(async (resolve) => {
-    try {
-      // parse body
-      let body;
-      try {
-        body = JSON.parse(event.body);
-      } catch (e) {
-        body = {};
-      }
-
-      // validate body
-      const result = body;
-
-      // return errors if any error
-      if (result.error) {
-        return resolve({
-          statusCode: 400,
-          body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
-          }),
-        });
-      }
-
-      // get connection to mongodb
-      const dbConn = await db();
-
-      // get database instance
-      const dbo = dbConn.db('dream-job');
-
-      // insert new user
-      await dbo.collection('technologies').insert(body);
-
       let technologies = [];
-      await dbo.collection("technologies").find({}).toArray(function(err, result) {
-        if (err) throw err;
-        jobs = result
-      });
+
+      await dbo
+        .collection("companies")
+        .find({})
+        .toArray(function(err, result) {
+          if (err) throw err;
+          companies = result;
+        });
+
+      await dbo
+        .collection("cities")
+        .find({})
+        .toArray(function(err, result) {
+          if (err) throw err;
+          cities = result;
+        });
+
+      await dbo
+        .collection("technologies")
+        .find({})
+        .toArray(function(err, result) {
+          if (err) throw err;
+          technologies = result;
+        });
 
       // close connection
       await dbConn.close();
@@ -382,26 +244,34 @@ async function addTechnologies(event) {
       return resolve({
         statusCode: 200,
         body: JSON.stringify({
+          companies,
+          cities,
           technologies
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
 }
-
-
 
 // add dream job
 async function createUser(event) {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       // parse body
       let body;
@@ -419,8 +289,12 @@ async function createUser(event) {
         return resolve({
           statusCode: 400,
           body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
+            message: result.error.details.map(a => a.message)
           }),
+          headers: {
+            'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+            'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+          }
         });
       }
 
@@ -428,10 +302,10 @@ async function createUser(event) {
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // insert new user
-      await dbo.collection('users').insert(body);
+      await dbo.collection("users").insert(body);
 
       // close connection
       await dbConn.close();
@@ -440,23 +314,31 @@ async function createUser(event) {
       return resolve({
         statusCode: 200,
         body: JSON.stringify({
-          message: 'User created',
+          message: "User created"
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
 }
 
 async function addJob(event) {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       // parse body
       let body;
@@ -474,8 +356,12 @@ async function addJob(event) {
         return resolve({
           statusCode: 400,
           body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
+            message: result.error.details.map(a => a.message)
           }),
+          headers: {
+            'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+            'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+          }
         });
       }
 
@@ -483,16 +369,19 @@ async function addJob(event) {
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // insert new user
-      await dbo.collection('jobs').insert(body);
+      await dbo.collection("jobs").insert(body);
 
       let jobs = [];
-      await dbo.collection("jobs").find({}).toArray(function(err, result) {
-        if (err) throw err;
-        jobs = result
-      });
+      await dbo
+        .collection("jobs")
+        .find({})
+        .toArray(function(err, result) {
+          if (err) throw err;
+          jobs = result;
+        });
       // close connection
       await dbConn.close();
 
@@ -500,16 +389,24 @@ async function addJob(event) {
       return resolve({
         statusCode: 200,
         body: JSON.stringify({
-          jobs,
+          jobs
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
@@ -517,7 +414,7 @@ async function addJob(event) {
 
 // update a single job
 async function updateJob(event) {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       // parse body
       let body;
@@ -535,8 +432,12 @@ async function updateJob(event) {
         return resolve({
           statusCode: 400,
           body: JSON.stringify({
-            message: result.error.details.map((a) => a.message),
+            message: result.error.details.map(a => a.message)
           }),
+          headers: {
+            'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+            'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+          }
         });
       }
 
@@ -544,19 +445,26 @@ async function updateJob(event) {
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // insert new user
-      console.log(result.value._id)
-      const id = await result.value._id.toString()
-      const a = await dbo.collection('jobs').findOneAndReplace({_id: id}, result.value, {returnNewDocument: true});
-      console.log(a)
+
+      var jobToUpdate = {};
+      jobToUpdate = Object.assign(jobToUpdate, result.value);
+      delete jobToUpdate._id;
+      const id = await result.value._id.toString();
+      await dbo
+        .collection("jobs")
+        .findOneAndUpdate({ _id: ObjectID(id) }, {$set: jobToUpdate});
 
       let jobs = [];
-      await dbo.collection("jobs").find({}).toArray(function(err, result) {
-        if (err) throw err;
-        jobs = result
-      });
+      await dbo
+        .collection("jobs")
+        .find({})
+        .toArray(function(err, result) {
+          if (err) throw err;
+          jobs = result;
+        });
       // close connection
       await dbConn.close();
 
@@ -564,16 +472,24 @@ async function updateJob(event) {
       return resolve({
         statusCode: 200,
         body: JSON.stringify({
-          jobs,
+          jobs
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
@@ -581,17 +497,17 @@ async function updateJob(event) {
 
 // get all jobs
 async function getJobs() {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       // get connection to mongodb
       const dbConn = await db();
 
       // get database instance
-      const dbo = dbConn.db('dream-job');
+      const dbo = dbConn.db("dream-job");
 
       // get all users
       const jobs = await dbo
-        .collection('jobs')
+        .collection("jobs")
         .find()
         .toArray();
 
@@ -603,16 +519,77 @@ async function getJobs() {
         statusCode: 200,
         body: JSON.stringify({
           jobs,
-          success: true,
+          success: true
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     } catch (e) {
       console.log(e);
       return resolve({
         statusCode: 500,
         body: JSON.stringify({
-          message: 'Some error occurred. Please try again later.',
+          message: "Some error occurred. Please try again later."
         }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
+      });
+    }
+  });
+}
+
+// delete job
+// get all jobs
+async function deleteJob(event) {
+  return new Promise(async resolve => {
+    try {
+      // get connection to mongodb
+      const dbConn = await db();
+
+      // get database instance
+      const dbo = dbConn.db("dream-job");
+
+      const id = await event.pathParameters.id.toString();
+      await dbo
+        .collection("jobs")
+        .findOneAndDelete({ _id: ObjectID(id) });
+
+      // get all jobs
+      const jobs = await dbo
+        .collection("jobs")
+        .find()
+        .toArray();
+
+      // close db connection
+      await dbConn.close();
+
+      // return jobs
+      return resolve({
+        statusCode: 200,
+        body: JSON.stringify({
+          jobs,
+          success: true
+        }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
+      });
+    } catch (e) {
+      console.log(e);
+      return resolve({
+        statusCode: 500,
+        body: JSON.stringify({
+          message: "Some error occurred. Please try again later."
+        }),
+        headers: {
+          'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+          'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+        }
       });
     }
   });
@@ -624,5 +601,8 @@ module.exports = {
   createUser,
   addJob,
   updateJob,
-  getJobs
+  deleteJob,
+  getJobs,
+  getGlobal,
+  updateGlobal
 };

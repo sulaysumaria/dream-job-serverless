@@ -1,12 +1,12 @@
 {
-  "name": "usermanagementapi",
+  "name": "dream-job",
   "version": "0.0.1",
-  "description": "API for User Management",
+  "description": "API for dream job portal",
   "scripts": {
     "start": "sls offline start",
     "deploy": "sls deploy -v"
   },
-  "author": "Sulay Sumaria",
+  "author": "Sumit Vekariya",
   "license": "MIT",
   "dependencies": {
     "joi": "^14.3.1",

@@ -1,10 +1,10 @@
-service: usermanagementapi
+service: dream-job
 
 provider:
   name: aws
   runtime: nodejs8.10
   region: ap-south-1
-  stage: dev
+  stage: prod
   environment:
     MONGODB_URL: ${file(./config.js):getEnvVars.${self:provider.stage}.MONGODB_URL}
 
@@ -22,7 +22,7 @@ functions:
       - http:
           path: user
           method: GET
-          cors: true
+          # cors: true
   createUser:
     handler: handler.createUser
     events:
@@ -56,51 +56,53 @@ functions:
           method: PUT
           cors: true
 
-  addCompanies:
-    handler: handler.addCompanies
+  deleteJob:
+    handler: handler.deleteJob
     events:
       - http:
-          path: companies
+          path: deleteJob/{id}
+          method: DELETE
+          cors: true
+
+  updateGlobal:
+    handler: handler.updateGlobal
+    events:
+      - http:
+          path: updateGlobal
           method: POST
-          cors: true
+          cors: true   
 
-  getCompanies:
-    handler: handler.getCompanies
+  # addCompanies:
+  #   handler: handler.addCompanies
+  #   events:
+  #     - http:
+  #         path: companies
+  #         method: POST
+  #         cors: true
+
+  
+
+  # addTechnologies:
+  #   handler: handler.addTechnologies
+  #   events:
+  #     - http:
+  #         path: technologies
+  #         method: POST
+  #         cors: true
+
+  # addCities:
+  #   handler: handler.addCities
+  #   events:
+  #     - http:
+  #         path: cities
+  #         method: POST
+  #         cors: true
+
+  getGlobal:
+    handler: handler.getGlobal
     events:
       - http:
-          path: companies
-          method: GET
-          cors: true
-
-  addCities:
-    handler: handler.addCities
-    events:
-      - http:
-          path: cities
-          method: POST
-          cors: true
-
-  getCities:
-    handler: handler.getCities
-    events:
-      - http:
-          path: cities
-          method: GET
-          cors: true
-
-  addTechnologies:
-    handler: handler.addTechnologies
-    events:
-      - http:
-          path: technologies
-          method: POST
-          cors: true
-
-  getTechnologies:
-    handler: handler.getTechnologies
-    events:
-      - http:
-          path: technologies
+          path: global
           method: GET
           cors: true
 
