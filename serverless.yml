@@ -1,0 +1,108 @@
+service: usermanagementapi
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ap-south-1
+  stage: dev
+  environment:
+    MONGODB_URL: ${file(./config.js):getEnvVars.${self:provider.stage}.MONGODB_URL}
+
+functions:
+  ping:
+    handler: handler.ping
+    events:
+      - http:
+          path: /
+          method: GET
+          cors: true
+  getUsers:
+    handler: handler.getUsers
+    events:
+      - http:
+          path: user
+          method: GET
+          cors: true
+  createUser:
+    handler: handler.createUser
+    events:
+      - http:
+          path: user
+          method: POST
+          cors: true
+
+
+  getJobs:
+    handler: handler.getJobs
+    events:
+      - http:
+          path: jobs
+          method: GET
+          cors: true
+
+  addJob:
+    handler: handler.addJob
+    events:
+      - http:
+          path: addJob
+          method: POST
+          cors: true
+
+  updateJob:
+    handler: handler.updateJob
+    events:
+      - http:
+          path: updateJob
+          method: PUT
+          cors: true
+
+  addCompanies:
+    handler: handler.addCompanies
+    events:
+      - http:
+          path: companies
+          method: POST
+          cors: true
+
+  getCompanies:
+    handler: handler.getCompanies
+    events:
+      - http:
+          path: companies
+          method: GET
+          cors: true
+
+  addCities:
+    handler: handler.addCities
+    events:
+      - http:
+          path: cities
+          method: POST
+          cors: true
+
+  getCities:
+    handler: handler.getCities
+    events:
+      - http:
+          path: cities
+          method: GET
+          cors: true
+
+  addTechnologies:
+    handler: handler.addTechnologies
+    events:
+      - http:
+          path: technologies
+          method: POST
+          cors: true
+
+  getTechnologies:
+    handler: handler.getTechnologies
+    events:
+      - http:
+          path: technologies
+          method: GET
+          cors: true
+
+plugins:
+  - serverless-offline
