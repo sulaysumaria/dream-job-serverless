@@ -746,6 +746,34 @@ type Job {
     _id: ID
 }
 
+input JobEventArgs {
+    title: String!
+    cities: [String]
+    technologies: [String]
+    companies: [String]
+    fromDate: String
+    toDate: String
+    expectedSalary: Int
+    index: Int
+    _id: ID
+}
+
+type Resources {
+    cities: [City!]
+    technologies: [Technology!]
+    companies: [Company!]
+}
+
+input Name {
+    name: String
+}
+
+input ResourcesInputArgs {
+    cities: [Name]
+    technologies: [Name]
+    companies: [Name]
+}
+
 type Company {
     _id: ID!
     name: String!
@@ -762,16 +790,20 @@ type Technology {
 }
 
 type Query {
-
     getJobs: [Job!]!
-    getCompanies: [Company!]!
-    getTechnologies: [Technology!]!
-    getCities: [City!]!
+    getResources: Resources
+}
 
+type RootMutation {
+    addJob(job: JobEventArgs): [Job!]!
+    updateJob(job: JobEventArgs): [Job!]!
+    deleteJob(jobId: String): [Job!]!
+    updateGlobal(resources: ResourcesInputArgs): Resources
 }
 
 schema {
-    query: Query
+    query: Query,
+    mutation: RootMutation
 }`;
 
 // eslint-disable-next-line import/prefer-default-export
@@ -867,7 +899,8 @@ const data = {
     })());
   },
 
-  getCompanies() {
+  // get global
+  getResources() {
     return new Promise((() => {
       var _ref2 = _asyncToGenerator(function* (resolve) {
         // get connection to mongodb
@@ -876,16 +909,23 @@ const data = {
         // get database instance
         const dbo = dbConn.db("dream-job");
 
-        // get all users
+        // get all companies
         const companies = yield dbo.collection("companies").find().toArray();
+
+        const cities = yield dbo.collection("cities").find().toArray();
+
+        // get all technologies
+        const technologies = yield dbo.collection("technologies").find().toArray();
 
         // close db connection
         yield dbConn.close();
 
-        console.log(companies);
-
-        // return users
-        return resolve(companies);
+        // return companies
+        return resolve({
+          cities: cities,
+          technologies: technologies,
+          companies: companies
+        });
       });
 
       return function (_x2) {
@@ -894,25 +934,39 @@ const data = {
     })());
   },
 
-  getCities() {
+  // update a single job
+  updateJob(event) {
+    console.log(event);
     return new Promise((() => {
       var _ref3 = _asyncToGenerator(function* (resolve) {
+        // validate body
+        const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
+        // console.log(result)
         // get connection to mongodb
         const dbConn = yield db();
 
         // get database instance
         const dbo = dbConn.db("dream-job");
 
-        // get all users
-        const cities = yield dbo.collection("cities").find().toArray();
+        // insert new user
 
-        // close db connection
+        var jobToUpdate = {};
+        jobToUpdate = Object.assign(jobToUpdate, result.value);
+        delete jobToUpdate._id;
+        const id = yield result.value._id.toString();
+        yield dbo.collection("jobs").findOneAndUpdate({ _id: ObjectID(id) }, { $set: jobToUpdate });
+
+        let jobs = [];
+        yield dbo.collection("jobs").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          jobs = result;
+        });
+        // close connection
         yield dbConn.close();
 
-        console.log(cities);
-
-        // return users
-        return resolve(cities);
+        // return response
+        return resolve(jobs);
+        // }
       });
 
       return function (_x3) {
@@ -920,46 +974,145 @@ const data = {
       };
     })());
   },
-
-  getTechnologies() {
+  addJob(event) {
     return new Promise((() => {
       var _ref4 = _asyncToGenerator(function* (resolve) {
+        // validate body
+        const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
+
         // get connection to mongodb
         const dbConn = yield db();
 
         // get database instance
         const dbo = dbConn.db("dream-job");
 
-        // get all users
-        const technologies = yield dbo.collection("technologies").find().toArray();
+        // insert new user
+        yield dbo.collection("jobs").insert(result.value);
 
-        // close db connection
+        let jobs = [];
+        yield dbo.collection("jobs").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          jobs = result;
+        });
+        // close connection
         yield dbConn.close();
 
-        console.log(technologies);
-
-        // return users
-        return resolve(technologies);
+        // return response
+        return resolve(jobs);
       });
 
       return function (_x4) {
         return _ref4.apply(this, arguments);
       };
     })());
+  },
+
+  // delete job
+  deleteJob(event) {
+    return new Promise((() => {
+      var _ref5 = _asyncToGenerator(function* (resolve) {
+        // get connection to mongodb
+        const dbConn = yield db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        const id = yield event.jobId.toString();
+        yield dbo.collection("jobs").findOneAndDelete({ _id: ObjectID(id) });
+
+        // get all jobs
+        const jobs = yield dbo.collection("jobs").find().toArray();
+
+        // close db connection
+        yield dbConn.close();
+
+        // return jobs
+        return resolve(jobs);
+      });
+
+      return function (_x5) {
+        return _ref5.apply(this, arguments);
+      };
+    })());
+  },
+
+  // update Global
+  updateGlobal(event) {
+    return new Promise((() => {
+      var _ref6 = _asyncToGenerator(function* (resolve) {
+        // get connection to mongodb
+        const dbConn = yield db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        console.log(event.resources);
+
+        // insert new resources
+        if (event.resources.companies.length) {
+          yield dbo.collection("companies").insert(event.resources.companies);
+        }
+
+        if (event.resources.cities.length) {
+          yield dbo.collection("cities").insert(event.resources.cities);
+        }
+
+        if (event.resources.technologies.length) {
+          yield dbo.collection("technologies").insert(event.resources.technologies);
+        }
+
+        let companies = [];
+        let cities = [];
+        let technologies = [];
+
+        yield dbo.collection("companies").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          companies = result;
+        });
+
+        yield dbo.collection("cities").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          cities = result;
+        });
+
+        yield dbo.collection("technologies").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          technologies = result;
+        });
+
+        // close connection
+        yield dbConn.close();
+
+        // return response
+        return resolve({
+          cities: cities,
+          technologies: technologies,
+          companies: companies
+        });
+      });
+
+      return function (_x6) {
+        return _ref6.apply(this, arguments);
+      };
+    })());
   }
 };
+
 // eslint-disable-next-line import/prefer-default-export
 const resolvers = exports.resolvers = {
   Query: {
     getJobs: () => data.getJobs(),
-    getCompanies: () => data.getCompanies(),
-    getTechnologies: () => data.getTechnologies(),
-    getCities: () => data.getCities()
-  }
-  // User: {
-  //   tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
-  // }
-};
+    getResources: () => data.getResources()
+  },
+  RootMutation: {
+    addJob: (root, job) => data.addJob(job),
+    updateJob: (root, job) => data.updateJob(job),
+    deleteJob: (root, jobId) => data.deleteJob(jobId),
+    updateGlobal: (root, resources) => data.updateGlobal(resources)
+    // User: {
+    //   tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
+    // }
+  } };
 
 
 /***/ }),
