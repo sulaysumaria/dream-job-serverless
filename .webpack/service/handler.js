@@ -734,29 +734,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 const schema = `
-type Mutation {
-
-
-    # Create user info is available in dynamo integration
-    updateUserInfo(
-        location: String!,
-        description: String!,
-        name: String!,
-        followers_count: Int!,
-        friends_count: Int!,
-        favourites_count: Int!,
-        following: [String!]!
-    ): User!
-}
-
-type Query {
-
-    getJobs(): Job!
-
-}
-
 type Job {
-    title: String
+    title: String!
     cities: [String]
     technoologies: [String]
     companies: [String]
@@ -764,16 +743,54 @@ type Job {
     toDate: String
     expectedSalary: Int
     index: Int
-    _id: String
+    _id: ID
+}
+
+type Company {
+    _id: ID!
+    name: String!
+}
+
+type City {
+    _id: ID!
+    name: String!
+}
+
+type Technology {
+    _id: ID!
+    name: String!
+}
+
+type Query {
+
+    getJobs: [Job!]!
+    getCompanies: [Company!]!
+    getTechnologies: [Technology!]!
+    getCities: [City!]!
+
 }
 
 schema {
     query: Query
-    mutation: Mutation
 }`;
 
 // eslint-disable-next-line import/prefer-default-export
 exports.schema = schema;
+
+// type Mutation {
+
+
+//     # Create user info is available in dynamo integration
+//     // updateUserInfo(
+//     //     location: String!,
+//     //     description: String!,
+//     //     name: String!,
+//     //     followers_count: Int!,
+//     //     friends_count: Int!,
+//     //     favourites_count: Int!,
+//     //     following: [String!]!
+//     // ): User!
+// }
 
 
 /***/ }),
@@ -826,50 +843,107 @@ const data = {
   getJobs() {
     return new Promise((() => {
       var _ref = _asyncToGenerator(function* (resolve) {
-        try {
-          // get connection to mongodb
-          const dbConn = yield db();
+        // get connection to mongodb
+        const dbConn = yield db();
 
-          // get database instance
-          const dbo = dbConn.db("dream-job");
+        // get database instance
+        const dbo = dbConn.db("dream-job");
 
-          // get all users
-          const jobs = yield dbo.collection("jobs").find().toArray();
+        // get all users
+        const jobs = yield dbo.collection("jobs").find().toArray();
 
-          // close db connection
-          yield dbConn.close();
+        // close db connection
+        yield dbConn.close();
 
-          console.log(jobs);
+        console.log(jobs);
 
-          // return users
-          return resolve({
-            statusCode: 200,
-            body: JSON.stringify({
-              jobs,
-              success: true
-            }),
-            headers: {
-              "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-              "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS
-            }
-          });
-        } catch (e) {
-          console.log(e);
-          return resolve({
-            statusCode: 500,
-            body: JSON.stringify({
-              message: "Some error occurred. Please try again later."
-            }),
-            headers: {
-              "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-              "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS
-            }
-          });
-        }
+        // return users
+        return resolve(jobs);
       });
 
       return function (_x) {
         return _ref.apply(this, arguments);
+      };
+    })());
+  },
+
+  getCompanies() {
+    return new Promise((() => {
+      var _ref2 = _asyncToGenerator(function* (resolve) {
+        // get connection to mongodb
+        const dbConn = yield db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const companies = yield dbo.collection("companies").find().toArray();
+
+        // close db connection
+        yield dbConn.close();
+
+        console.log(companies);
+
+        // return users
+        return resolve(companies);
+      });
+
+      return function (_x2) {
+        return _ref2.apply(this, arguments);
+      };
+    })());
+  },
+
+  getCities() {
+    return new Promise((() => {
+      var _ref3 = _asyncToGenerator(function* (resolve) {
+        // get connection to mongodb
+        const dbConn = yield db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const cities = yield dbo.collection("cities").find().toArray();
+
+        // close db connection
+        yield dbConn.close();
+
+        console.log(cities);
+
+        // return users
+        return resolve(cities);
+      });
+
+      return function (_x3) {
+        return _ref3.apply(this, arguments);
+      };
+    })());
+  },
+
+  getTechnologies() {
+    return new Promise((() => {
+      var _ref4 = _asyncToGenerator(function* (resolve) {
+        // get connection to mongodb
+        const dbConn = yield db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const technologies = yield dbo.collection("technologies").find().toArray();
+
+        // close db connection
+        yield dbConn.close();
+
+        console.log(technologies);
+
+        // return users
+        return resolve(technologies);
+      });
+
+      return function (_x4) {
+        return _ref4.apply(this, arguments);
       };
     })());
   }
@@ -877,11 +951,14 @@ const data = {
 // eslint-disable-next-line import/prefer-default-export
 const resolvers = exports.resolvers = {
   Query: {
-    getJobs: () => data.getJobs()
-  },
-  User: {
-    tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
+    getJobs: () => data.getJobs(),
+    getCompanies: () => data.getCompanies(),
+    getTechnologies: () => data.getTechnologies(),
+    getCities: () => data.getCities()
   }
+  // User: {
+  //   tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
+  // }
 };
 
 

@@ -33,7 +33,6 @@ const data = {
   // get all jobs
   getJobs() {
     return new Promise(async resolve => {
-      try {
         // get connection to mongodb
         const dbConn = await db();
 
@@ -52,39 +51,91 @@ const data = {
         console.log(jobs)
 
         // return users
-        return resolve({
-          statusCode: 200,
-          body: JSON.stringify({
-            jobs,
-            success: true
-          }),
-          headers: {
-            "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-            "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS
-          }
-        });
-      } catch (e) {
-        console.log(e);
-        return resolve({
-          statusCode: 500,
-          body: JSON.stringify({
-            message: "Some error occurred. Please try again later."
-          }),
-          headers: {
-            "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-            "Access-Control-Allow-Credentials": true // Required for cookies, authorization headers with HTTPS
-          }
-        });
-      }
+        return resolve(jobs);
+    });
+  },
+
+  getCompanies() {
+    return new Promise(async resolve => {
+        // get connection to mongodb
+        const dbConn = await db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const companies = await dbo
+          .collection("companies")
+          .find()
+          .toArray();
+
+        // close db connection
+        await dbConn.close();
+
+        console.log(companies)
+
+        // return users
+        return resolve(companies);
+    });
+  },
+
+  getCities() {
+    return new Promise(async resolve => {
+        // get connection to mongodb
+        const dbConn = await db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const cities = await dbo
+          .collection("cities")
+          .find()
+          .toArray();
+
+        // close db connection
+        await dbConn.close();
+
+        console.log(cities)
+
+        // return users
+        return resolve(cities);
+    });
+  },
+
+  getTechnologies() {
+    return new Promise(async resolve => {
+        // get connection to mongodb
+        const dbConn = await db();
+
+        // get database instance
+        const dbo = dbConn.db("dream-job");
+
+        // get all users
+        const technologies = await dbo
+          .collection("technologies")
+          .find()
+          .toArray();
+
+        // close db connection
+        await dbConn.close();
+
+        console.log(technologies)
+
+        // return users
+        return resolve(technologies);
     });
   },
 };
 // eslint-disable-next-line import/prefer-default-export
 export const resolvers = {
   Query: {
-    getJobs: () => data.getJobs()
+    getJobs: () => data.getJobs(),
+    getCompanies: () => data.getCompanies(),
+    getTechnologies: () => data.getTechnologies(),
+    getCities: () => data.getCities()
   },
-  User: {
-    tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
-  }
+  // User: {
+  //   tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
+  // }
 };
