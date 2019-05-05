@@ -9,102 +9,21 @@ provider:
     MONGODB_URL: ${file(./config.js):getEnvVars.${self:provider.stage}.MONGODB_URL}
 
 functions:
-  ping:
-    handler: handler.ping
+  graphql:
+    handler: handler.graphqlHandler
+    role: ServiceRole
     events:
       - http:
-          path: /
-          method: GET
+          path: graphql
+          method: post
           cors: true
-  getUsers:
-    handler: handler.getUsers
-    events:
       - http:
-          path: user
-          method: GET
-          # cors: true
-  createUser:
-    handler: handler.createUser
-    events:
-      - http:
-          path: user
-          method: POST
-          cors: true
+          path: graphql
+          method: get
 
-
-  getJobs:
-    handler: handler.getJobs
-    events:
-      - http:
-          path: jobs
-          method: GET
-          cors: true
-
-  addJob:
-    handler: handler.addJob
-    events:
-      - http:
-          path: addJob
-          method: POST
-          cors: true
-
-  updateJob:
-    handler: handler.updateJob
-    events:
-      - http:
-          path: updateJob
-          method: PUT
-          cors: true
-
-  deleteJob:
-    handler: handler.deleteJob
-    events:
-      - http:
-          path: deleteJob/{id}
-          method: DELETE
-          cors: true
-
-  updateGlobal:
-    handler: handler.updateGlobal
-    events:
-      - http:
-          path: updateGlobal
-          method: POST
-          cors: true   
-
-  # addCompanies:
-  #   handler: handler.addCompanies
-  #   events:
-  #     - http:
-  #         path: companies
-  #         method: POST
-  #         cors: true
-
-  
-
-  # addTechnologies:
-  #   handler: handler.addTechnologies
-  #   events:
-  #     - http:
-  #         path: technologies
-  #         method: POST
-  #         cors: true
-
-  # addCities:
-  #   handler: handler.addCities
-  #   events:
-  #     - http:
-  #         path: cities
-  #         method: POST
-  #         cors: true
-
-  getGlobal:
-    handler: handler.getGlobal
-    events:
-      - http:
-          path: global
-          method: GET
-          cors: true
+custom:
+  serverless-offline:
+    port: 5000
 
 plugins:
   - serverless-offline
