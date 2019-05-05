@@ -1,4 +1,6 @@
-# usermanagementapi
+# dream-job
+
+GraphQL API for DreamJob using serverless
 
 ## Getting started
 
