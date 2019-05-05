@@ -1,8 +1,7 @@
-// add to handler.js
 const Joi = require("joi");
 
 const { db } = require("./helpers/db");
-var ObjectID = require("mongodb").ObjectID;
+const ObjectID = require("mongodb").ObjectID;
 
 // schema for validating user object when adding new user
 const jobSchema = Joi.object().keys({
@@ -16,18 +15,6 @@ const jobSchema = Joi.object().keys({
   index: Joi.number(),
   _id: Joi.string()
 });
-
-// add to handler.js
-const promisify = foo =>
-  new Promise((resolve, reject) => {
-    foo((error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
 
 const data = {
   // get all jobs
@@ -47,8 +34,6 @@ const data = {
 
       // close db connection
       await dbConn.close();
-
-      console.log(jobs);
 
       // return users
       return resolve(jobs);
@@ -95,11 +80,10 @@ const data = {
 
   // update a single job
   updateJob(event) {
-    console.log(event);
     return new Promise(async resolve => {
       // validate body
       const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
-      // console.log(result)
+
       // get connection to mongodb
       const dbConn = await db();
 
@@ -120,7 +104,7 @@ const data = {
       await dbo
         .collection("jobs")
         .find({})
-        .toArray(function(err, result) {
+        .toArray((err, result) => {
           if (err) throw err;
           jobs = result;
         });
@@ -150,7 +134,7 @@ const data = {
       await dbo
         .collection("jobs")
         .find({})
-        .toArray(function(err, result) {
+        .toArray((err, result) => {
           if (err) throw err;
           jobs = result;
         });
@@ -197,8 +181,6 @@ const data = {
       // get database instance
       const dbo = dbConn.db("dream-job");
 
-      console.log(event.resources);
-
       // insert new resources
       if (event.resources.companies.length) {
         await dbo.collection("companies").insert(event.resources.companies);
@@ -209,7 +191,9 @@ const data = {
       }
 
       if (event.resources.technologies.length) {
-        await dbo.collection("technologies").insert(event.resources.technologies);
+        await dbo
+          .collection("technologies")
+          .insert(event.resources.technologies);
       }
 
       let companies = [];
@@ -219,7 +203,7 @@ const data = {
       await dbo
         .collection("companies")
         .find({})
-        .toArray(function(err, result) {
+        .toArray((err, result) => {
           if (err) throw err;
           companies = result;
         });
@@ -227,7 +211,7 @@ const data = {
       await dbo
         .collection("cities")
         .find({})
-        .toArray(function(err, result) {
+        .toArray((err, result) => {
           if (err) throw err;
           cities = result;
         });
@@ -235,7 +219,7 @@ const data = {
       await dbo
         .collection("technologies")
         .find({})
-        .toArray(function(err, result) {
+        .toArray((err, result) => {
           if (err) throw err;
           technologies = result;
         });
@@ -253,8 +237,7 @@ const data = {
   }
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export const resolvers = {
+exports.resolvers = {
   Query: {
     getJobs: () => data.getJobs(),
     getResources: () => data.getResources()
@@ -265,7 +248,4 @@ export const resolvers = {
     deleteJob: (root, jobId) => data.deleteJob(jobId),
     updateGlobal: (root, resources) => data.updateGlobal(resources)
   }
-  // User: {
-  //   tweets: (obj, args) => data.getPaginatedTweets(obj.handle, args)
-  // }
 };

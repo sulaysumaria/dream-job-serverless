@@ -71,21 +71,4 @@ schema {
     mutation: RootMutation
 }`;
 
-// eslint-disable-next-line import/prefer-default-export
-export { schema };
-
-// type Mutation {
-
-
-//     # Create user info is available in dynamo integration
-//     // updateUserInfo(
-//     //     location: String!,
-//     //     description: String!,
-//     //     name: String!,
-//     //     followers_count: Int!,
-//     //     friends_count: Int!,
-//     //     favourites_count: Int!,
-//     //     following: [String!]!
-//     // ): User!
-// }
-
+module.exports = { schema };
