@@ -1,32 +1,32 @@
-const { ApolloServer } = require("apollo-server-lambda");
+const {ApolloServer} = require('apollo-server-lambda');
 
-const { schema } = require("./schema");
-const { resolvers } = require("./resolvers");
+const {schema} = require('./schema');
+const {resolvers} = require('./resolvers');
 
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
-  formatError: error => {
+  formatError: (error) => {
     console.log(error);
     return error;
   },
-  formatResponse: response => {
+  formatResponse: (response) => {
     return response;
   },
-  context: ({ event, context }) => ({
+  context: ({event, context}) => ({
     headers: event.headers,
     functionName: context.functionName,
     event,
-    context
+    context,
   }),
   playground: {
-    endpoint: "http://localhost:5000/graphql"
+    endpoint: 'http://localhost:5000/graphql',
   },
-  tracing: true
+  tracing: true,
 });
 
 exports.graphqlHandler = server.createHandler({
   cors: {
-    origin: "*"
-  }
+    origin: '*',
+  },
 });

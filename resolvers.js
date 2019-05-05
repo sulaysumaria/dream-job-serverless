@@ -1,7 +1,7 @@
-const Joi = require("joi");
-const ObjectID = require("mongodb").ObjectID;
+const Joi = require('joi');
+const {ObjectID} = require('mongodb');
 
-const { db } = require("./helpers/db");
+const {db} = require('./helpers/db');
 
 const jobSchema = Joi.object().keys({
   title: Joi.string().required(),
@@ -12,171 +12,174 @@ const jobSchema = Joi.object().keys({
   toDate: Joi.date().required(),
   expectedSalary: Joi.number().required(),
   index: Joi.number(),
-  _id: Joi.string()
+  _id: Joi.string(),
 });
 
-const data = {
-  getJobs() {
-    return new Promise(async resolve => {
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
+function getJobs() {
+  return new Promise(async (resolve) => {
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
 
-      const jobs = await dbo
-        .collection("jobs")
+    const jobs = await dbo
+        .collection('jobs')
         .find()
         .toArray();
 
-      await dbConn.close();
+    await dbConn.close();
 
-      return resolve(jobs);
-    });
-  },
-  getResources() {
-    return new Promise(async resolve => {
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
+    return resolve(jobs);
+  });
+}
 
-      const [companies, cities, technologies] = await Promise.all([
-        dbo
-          .collection("companies")
-          .find()
-          .toArray(),
-        dbo
-          .collection("cities")
-          .find()
-          .toArray(),
-        dbo
-          .collection("technologies")
-          .find()
-          .toArray()
-      ]);
+function addJob(root, event) {
+  return new Promise(async (resolve) => {
+    const result = Joi.validate(event.job, jobSchema, {abortEarly: false});
 
-      await dbConn.close();
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
 
-      return resolve({
-        cities: cities,
-        technologies: technologies,
-        companies: companies
-      });
-    });
-  },
-  updateJob(event) {
-    return new Promise(async resolve => {
-      const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
+    await dbo.collection('jobs').insert(result.value);
 
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
-
-      const jobToUpdate = Object.assign(jobToUpdate, result.value);
-      delete jobToUpdate._id;
-      const id = await result.value._id.toString();
-
-      await dbo
-        .collection("jobs")
-        .findOneAndUpdate({ _id: ObjectID(id) }, { $set: jobToUpdate });
-
-      const jobs = await dbo
-        .collection("jobs")
+    const jobs = await dbo
+        .collection('jobs')
         .find({})
         .toArray();
 
-      await dbConn.close();
+    await dbConn.close();
 
-      return resolve(jobs);
-    });
-  },
-  addJob(event) {
-    return new Promise(async resolve => {
-      const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
+    return resolve(jobs);
+  });
+}
 
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
+function updateJob(root, event) {
+  return new Promise(async (resolve) => {
+    const result = Joi.validate(event.job, jobSchema, {abortEarly: false});
 
-      await dbo.collection("jobs").insert(result.value);
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
 
-      const jobs = await dbo
-        .collection("jobs")
+    const jobToUpdate = Object.assign({}, result.value);
+    delete jobToUpdate._id;
+
+    await dbo
+        .collection('jobs')
+        .findOneAndUpdate(
+            {_id: new ObjectID(result.value._id)},
+            {$set: jobToUpdate}
+        );
+
+    const jobs = await dbo
+        .collection('jobs')
         .find({})
         .toArray();
 
-      await dbConn.close();
+    await dbConn.close();
 
-      return resolve(jobs);
-    });
-  },
-  deleteJob(event) {
-    return new Promise(async resolve => {
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
+    return resolve(jobs);
+  });
+}
 
-      const id = await event.jobId.toString();
+function deleteJob(root, event) {
+  return new Promise(async (resolve) => {
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
 
-      await dbo.collection("jobs").findOneAndDelete({ _id: ObjectID(id) });
+    await dbo
+        .collection('jobs')
+        .findOneAndDelete({_id: new ObjectID(event.jobId)});
 
-      const jobs = await dbo
-        .collection("jobs")
+    const jobs = await dbo
+        .collection('jobs')
         .find()
         .toArray();
 
-      await dbConn.close();
+    await dbConn.close();
 
-      return resolve(jobs);
-    });
-  },
-  updateGlobal(event) {
-    return new Promise(async resolve => {
-      const dbConn = await db();
-      const dbo = dbConn.db("dream-job");
+    return resolve(jobs);
+  });
+}
 
-      if (event.resources.companies.length) {
-        await dbo.collection("companies").insert(event.resources.companies);
-      }
+function getResources() {
+  return new Promise(async (resolve) => {
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
 
-      if (event.resources.cities.length) {
-        await dbo.collection("cities").insert(event.resources.cities);
-      }
-
-      if (event.resources.technologies.length) {
-        await dbo
-          .collection("technologies")
-          .insert(event.resources.technologies);
-      }
-
-      const [companies, cities, technologies] = await Promise.all([
-        dbo
-          .collection("companies")
+    const [companies, cities, technologies] = await Promise.all([
+      dbo
+          .collection('companies')
           .find()
           .toArray(),
-        dbo
-          .collection("cities")
+      dbo
+          .collection('cities')
           .find()
           .toArray(),
-        dbo
-          .collection("technologies")
+      dbo
+          .collection('technologies')
           .find()
-          .toArray()
-      ]);
+          .toArray(),
+    ]);
 
-      await dbConn.close();
+    await dbConn.close();
 
-      return resolve({
-        cities: cities,
-        technologies: technologies,
-        companies: companies
-      });
+    return resolve({
+      cities: cities,
+      technologies: technologies,
+      companies: companies,
     });
-  }
-};
+  });
+}
+
+function updateGlobal(root, event) {
+  return new Promise(async (resolve) => {
+    const dbConn = await db();
+    const dbo = dbConn.db('dream-job');
+
+    if (event.resources.companies.length) {
+      await dbo.collection('companies').insert(event.resources.companies);
+    }
+
+    if (event.resources.cities.length) {
+      await dbo.collection('cities').insert(event.resources.cities);
+    }
+
+    if (event.resources.technologies.length) {
+      await dbo.collection('technologies').insert(event.resources.technologies);
+    }
+
+    const [companies, cities, technologies] = await Promise.all([
+      dbo
+          .collection('companies')
+          .find()
+          .toArray(),
+      dbo
+          .collection('cities')
+          .find()
+          .toArray(),
+      dbo
+          .collection('technologies')
+          .find()
+          .toArray(),
+    ]);
+
+    await dbConn.close();
+
+    return resolve({
+      cities: cities,
+      technologies: technologies,
+      companies: companies,
+    });
+  });
+}
 
 exports.resolvers = {
   Query: {
-    getJobs: () => data.getJobs(),
-    getResources: () => data.getResources()
+    getJobs,
+    getResources,
   },
   RootMutation: {
-    addJob: (root, job) => data.addJob(job),
-    updateJob: (root, job) => data.updateJob(job),
-    deleteJob: (root, jobId) => data.deleteJob(jobId),
-    updateGlobal: (root, resources) => data.updateGlobal(resources)
-  }
+    addJob,
+    updateJob,
+    deleteJob,
+    updateGlobal,
+  },
 };
