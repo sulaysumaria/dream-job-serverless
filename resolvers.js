@@ -1,9 +1,8 @@
 const Joi = require("joi");
-
-const { db } = require("./helpers/db");
 const ObjectID = require("mongodb").ObjectID;
 
-// schema for validating user object when adding new user
+const { db } = require("./helpers/db");
+
 const jobSchema = Joi.object().keys({
   title: Joi.string().required(),
   companies: Joi.array(),
@@ -17,59 +16,43 @@ const jobSchema = Joi.object().keys({
 });
 
 const data = {
-  // get all jobs
   getJobs() {
     return new Promise(async resolve => {
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
-      // get all users
       const jobs = await dbo
         .collection("jobs")
         .find()
         .toArray();
 
-      // close db connection
       await dbConn.close();
 
-      // return users
       return resolve(jobs);
     });
   },
-
-  // get global
   getResources() {
     return new Promise(async resolve => {
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
-      // get all companies
-      const companies = await dbo
-        .collection("companies")
-        .find()
-        .toArray();
+      const [companies, cities, technologies] = await Promise.all([
+        dbo
+          .collection("companies")
+          .find()
+          .toArray(),
+        dbo
+          .collection("cities")
+          .find()
+          .toArray(),
+        dbo
+          .collection("technologies")
+          .find()
+          .toArray()
+      ]);
 
-      const cities = await dbo
-        .collection("cities")
-        .find()
-        .toArray();
-
-      // get all technologies
-      const technologies = await dbo
-        .collection("technologies")
-        .find()
-        .toArray();
-
-      // close db connection
       await dbConn.close();
 
-      // return companies
       return resolve({
         cities: cities,
         technologies: technologies,
@@ -77,111 +60,74 @@ const data = {
       });
     });
   },
-
-  // update a single job
   updateJob(event) {
     return new Promise(async resolve => {
-      // validate body
       const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
 
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
-      // insert new user
-
-      var jobToUpdate = {};
-      jobToUpdate = Object.assign(jobToUpdate, result.value);
+      const jobToUpdate = Object.assign(jobToUpdate, result.value);
       delete jobToUpdate._id;
       const id = await result.value._id.toString();
+
       await dbo
         .collection("jobs")
         .findOneAndUpdate({ _id: ObjectID(id) }, { $set: jobToUpdate });
 
-      let jobs = [];
-      await dbo
+      const jobs = await dbo
         .collection("jobs")
         .find({})
-        .toArray((err, result) => {
-          if (err) throw err;
-          jobs = result;
-        });
-      // close connection
+        .toArray();
+
       await dbConn.close();
 
-      // return response
       return resolve(jobs);
-      // }
     });
   },
   addJob(event) {
     return new Promise(async resolve => {
-      // validate body
       const result = Joi.validate(event.job, jobSchema, { abortEarly: false });
 
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
-      // insert new user
       await dbo.collection("jobs").insert(result.value);
 
-      let jobs = [];
-      await dbo
+      const jobs = await dbo
         .collection("jobs")
         .find({})
-        .toArray((err, result) => {
-          if (err) throw err;
-          jobs = result;
-        });
-      // close connection
+        .toArray();
+
       await dbConn.close();
 
-      // return response
       return resolve(jobs);
     });
   },
-
-  // delete job
   deleteJob(event) {
     return new Promise(async resolve => {
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
       const id = await event.jobId.toString();
+
       await dbo.collection("jobs").findOneAndDelete({ _id: ObjectID(id) });
 
-      // get all jobs
       const jobs = await dbo
         .collection("jobs")
         .find()
         .toArray();
 
-      // close db connection
       await dbConn.close();
 
-      // return jobs
       return resolve(jobs);
     });
   },
-
-  // update Global
   updateGlobal(event) {
     return new Promise(async resolve => {
-      // get connection to mongodb
       const dbConn = await db();
-
-      // get database instance
       const dbo = dbConn.db("dream-job");
 
-      // insert new resources
       if (event.resources.companies.length) {
         await dbo.collection("companies").insert(event.resources.companies);
       }
@@ -196,38 +142,23 @@ const data = {
           .insert(event.resources.technologies);
       }
 
-      let companies = [];
-      let cities = [];
-      let technologies = [];
+      const [companies, cities, technologies] = await Promise.all([
+        dbo
+          .collection("companies")
+          .find()
+          .toArray(),
+        dbo
+          .collection("cities")
+          .find()
+          .toArray(),
+        dbo
+          .collection("technologies")
+          .find()
+          .toArray()
+      ]);
 
-      await dbo
-        .collection("companies")
-        .find({})
-        .toArray((err, result) => {
-          if (err) throw err;
-          companies = result;
-        });
-
-      await dbo
-        .collection("cities")
-        .find({})
-        .toArray((err, result) => {
-          if (err) throw err;
-          cities = result;
-        });
-
-      await dbo
-        .collection("technologies")
-        .find({})
-        .toArray((err, result) => {
-          if (err) throw err;
-          technologies = result;
-        });
-
-      // close connection
       await dbConn.close();
 
-      // return response
       return resolve({
         cities: cities,
         technologies: technologies,
